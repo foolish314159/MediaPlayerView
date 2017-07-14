@@ -2,7 +2,9 @@ package com.github.foolish314159.mediaplayerview;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.PlaybackParams;
@@ -10,6 +12,7 @@ import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,6 +56,48 @@ public class MediaPlayerView extends LinearLayout implements AdapterView.OnItemS
     private String url = null;
     private Thread progressThread = null;
     private boolean isProgressTrackingCancelled = false;
+
+    // Expose views and mediaplayer to enable styling and custom functionality
+
+    public Spinner getSpinnerPlaybackRate() {
+        return spinnerPlaybackRate;
+    }
+
+    public ImageButton getButtonRewind() {
+        return buttonRewind;
+    }
+
+    public ImageButton getButtonStartPause() {
+        return buttonStartPause;
+    }
+
+    public ImageButton getButtonFastForward() {
+        return buttonFastForward;
+    }
+
+    public LinearLayout getColumnUnused() {
+        return columnUnused;
+    }
+
+    public SeekBar getSeekBarProgress() {
+        return seekBarProgress;
+    }
+
+    public TextView getTextViewProgress() {
+        return textViewProgress;
+    }
+
+    public TextView getTextViewTotal() {
+        return textViewTotal;
+    }
+
+    public MediaPlayer getMediaPlayer() {
+        return mediaPlayer;
+    }
+
+    public String getUrl() {
+        return url;
+    }
 
     public MediaPlayerView(Context context) {
         super(context);
@@ -125,6 +170,7 @@ public class MediaPlayerView extends LinearLayout implements AdapterView.OnItemS
                 rewind();
             }
         });
+        setImageButtonBackgroundAttribute(buttonRewind);
         columnPlaybackControls.addView(buttonRewind);
 
         buttonStartPause = new ImageButton(context);
@@ -138,6 +184,7 @@ public class MediaPlayerView extends LinearLayout implements AdapterView.OnItemS
                 startPause();
             }
         });
+        setImageButtonBackgroundAttribute(buttonStartPause);
         columnPlaybackControls.addView(buttonStartPause);
 
         buttonFastForward = new ImageButton(context);
@@ -151,6 +198,7 @@ public class MediaPlayerView extends LinearLayout implements AdapterView.OnItemS
                 fastForward();
             }
         });
+        setImageButtonBackgroundAttribute(buttonFastForward);
         columnPlaybackControls.addView(buttonFastForward);
 
         rowPlayback.addView(columnPlaybackControls);
@@ -192,6 +240,16 @@ public class MediaPlayerView extends LinearLayout implements AdapterView.OnItemS
         rowProgress.addView(textViewTotal);
 
         addView(rowProgress);
+    }
+
+    private void setImageButtonBackgroundAttribute(ImageButton button) {
+        TypedValue outValue = new TypedValue();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getContext().getTheme().resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, outValue, true);
+        } else {
+            getContext().getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+        }
+        button.setBackgroundResource(outValue.resourceId);
     }
 
     // Actual media player
