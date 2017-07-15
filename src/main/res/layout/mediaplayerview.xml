@@ -20,7 +20,8 @@
             <Spinner
                 android:id="@+id/spinnerPlaybackRate"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
         </LinearLayout>
 
         <LinearLayout
@@ -34,21 +35,21 @@
                 android:id="@+id/buttonRewind"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                android:background="?attr/selectableItemBackground"
                 android:src="@android:drawable/ic_media_rew" />
 
             <ImageButton
                 android:id="@+id/buttonPlay"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                android:background="?attr/selectableItemBackground"
                 android:src="@android:drawable/ic_media_play" />
 
             <ImageButton
                 android:id="@+id/buttonFastForward"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                android:background="?attr/selectableItemBackground"
                 android:src="@android:drawable/ic_media_ff" />
         </LinearLayout>
 
