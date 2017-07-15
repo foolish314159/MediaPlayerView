@@ -13,11 +13,11 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.SeekBar
-import kotlinx.android.synthetic.main.mediaplayerview.view.*;
+import kotlinx.android.synthetic.main.mediaplayerview.view.*
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-open class MediaPlayerViewKotlin : LinearLayout {
+open class MediaPlayerView : LinearLayout {
 
     var mediaPlayer: MediaPlayer? = null
         private set
@@ -58,11 +58,11 @@ open class MediaPlayerViewKotlin : LinearLayout {
                 // Default to 100%
                 spinnerPlaybackRate.setSelection(5)
                 spinnerPlaybackRate.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                    override fun onNothingSelected(adapter: AdapterView<*>?) {
+                    override fun onNothingSelected(adap: AdapterView<*>?) {
                     }
 
                     @RequiresApi(Build.VERSION_CODES.M)
-                    override fun onItemSelected(adapter: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                    override fun onItemSelected(adap: AdapterView<*>?, view: View?, position: Int, id: Long) {
                         changePlaybackRate()
                     }
                 }
@@ -76,15 +76,15 @@ open class MediaPlayerViewKotlin : LinearLayout {
             // Progress TextViews and SeekBar
             seekBarProgress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
-                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                    this@MediaPlayerView.onProgressChanged(p0, p1, p2)
                 }
 
                 override fun onStartTrackingTouch(p0: SeekBar?) {
-                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                    this@MediaPlayerView.onStartTrackingTouch(p0)
                 }
 
                 override fun onStopTrackingTouch(p0: SeekBar?) {
-                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                    this@MediaPlayerView.onStopTrackingTouch(p0)
                 }
 
             })
@@ -112,6 +112,9 @@ open class MediaPlayerViewKotlin : LinearLayout {
 
     fun releasePlayer() {
         mediaPlayer?.let { mp ->
+            isProgressTrackingCancelled = true
+            progressThread?.interrupt()
+            progressThread = null
             mp.release()
         }
     }
@@ -135,6 +138,15 @@ open class MediaPlayerViewKotlin : LinearLayout {
     protected fun onSeekComplete(mp: MediaPlayer) {
         if (shouldPlayAfterSeek) {
             mp.start()
+        } else {
+            seekBarProgress?.let { sbProgress ->
+                val duration = mp.duration
+                val position = mp.currentPosition
+                val progress: Int = (position.toFloat() / duration * sbProgress.max).toInt()
+                val durationString = formatMillis(position)
+                sbProgress.progress = progress
+                textViewProgress?.text = durationString
+            }
         }
     }
 
@@ -171,8 +183,12 @@ open class MediaPlayerViewKotlin : LinearLayout {
         mediaPlayer?.let { mp ->
             try {
                 shouldPlayAfterSeek = mp.isPlaying
-                val newPos = mp.currentPosition - milliseconds
-                mp.pause()
+                var newPos = mp.currentPosition + milliseconds
+
+                if (newPos < 0) newPos = 0
+                if (newPos > mp.duration) newPos = mp.duration
+                if (shouldPlayAfterSeek) mp.pause()
+
                 mp.seekTo(newPos)
             } catch (ise: IllegalStateException) {
                 // ignore
@@ -201,6 +217,7 @@ open class MediaPlayerViewKotlin : LinearLayout {
                 try {
                     buttonPlay?.setImageResource(android.R.drawable.ic_media_pause)
                     mp.start()
+                    trackProgress(true)
                 } catch (ise2: IllegalStateException) {
                     // ignore
                 }
@@ -276,16 +293,18 @@ open class MediaPlayerViewKotlin : LinearLayout {
         }
     }
 
-    protected fun onProgressChanged(seekBar: SeekBar, progress: Int, b: Boolean) {}
+    protected fun onProgressChanged(seekBar: SeekBar?, progress: Int, b: Boolean) {}
 
-    protected fun onStartTrackingTouch(seekBar: SeekBar) {}
+    protected fun onStartTrackingTouch(seekBar: SeekBar?) {}
 
-    protected fun onStopTrackingTouch(seekBar: SeekBar) {
-        mediaPlayer?.let { mp ->
+    protected fun onStopTrackingTouch(seekBar: SeekBar?) {
+        val mp = mediaPlayer
+        val sb = seekBar
+        if (mp != null && sb != null) {
             try {
-                val progress = seekBar.progress
-                val duration = mp.getDuration()
-                val percentage = progress.toFloat() / seekBar.max
+                val progress = sb.progress
+                val duration = mp.duration
+                val percentage = progress.toFloat() / sb.max
                 val newPosition = (duration * percentage).toInt()
                 mp.seekTo(newPosition)
             } catch (ise: IllegalStateException) {
