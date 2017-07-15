@@ -12,6 +12,7 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.LinearLayout
+import android.widget.SeekBar
 import kotlinx.android.synthetic.main.mediaplayerview.view.*;
 import java.io.IOException
 import java.util.concurrent.TimeUnit
@@ -73,7 +74,20 @@ open class MediaPlayerViewKotlin : LinearLayout {
             buttonFastForward.setOnClickListener { fastForward() }
 
             // Progress TextViews and SeekBar
+            seekBarProgress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
+                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                }
 
+                override fun onStartTrackingTouch(p0: SeekBar?) {
+                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                }
+
+                override fun onStopTrackingTouch(p0: SeekBar?) {
+                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                }
+
+            })
         }
 
     }
@@ -256,6 +270,24 @@ open class MediaPlayerViewKotlin : LinearLayout {
                         }
                     }
                 }
+            } catch (ise: IllegalStateException) {
+                // ignore
+            }
+        }
+    }
+
+    protected fun onProgressChanged(seekBar: SeekBar, progress: Int, b: Boolean) {}
+
+    protected fun onStartTrackingTouch(seekBar: SeekBar) {}
+
+    protected fun onStopTrackingTouch(seekBar: SeekBar) {
+        mediaPlayer?.let { mp ->
+            try {
+                val progress = seekBar.progress
+                val duration = mp.getDuration()
+                val percentage = progress.toFloat() / seekBar.max
+                val newPosition = (duration * percentage).toInt()
+                mp.seekTo(newPosition)
             } catch (ise: IllegalStateException) {
                 // ignore
             }
